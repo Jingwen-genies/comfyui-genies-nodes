@@ -7,8 +7,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "GeniesScaleFaceByKeypoints": "Genies Scale Face by Keypoints",
     "GeniesRGBToHSV": "Get V Channel from HSV",
     "GeniesSelectRGBByMask": "Select RGB by Mask",
-    "GeniesSaveImageToS3": "Save to s3"
-    "GeniesGetImageFromS3:" "Download from s3"
+    "GeniesSaveImageToS3": "Save to s3",
+    "GeniesGetImageFromS3": "Download from s3"
 }
 
 NODE_CLASS_MAPPINGS = {

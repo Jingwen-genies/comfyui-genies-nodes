@@ -29,7 +29,7 @@ class S3ImageSaver:
         }
 
     RETURN_TYPES = ()
-    FUNCTION = "save_images"
+    FUNCTION = "upload_images_to_s3"
     OUTPUT_NODE = True
     CATEGORY = "image"
 
@@ -64,7 +64,7 @@ class S3ImageSaver:
         return folder_path, base_filename
         
     @backoff.on_exception(backoff.expo, Exception, max_tries=5)
-    def save_images(self, images: torch.Tensor, bucket_name: str, s3_key: str, prompt: Optional[str] = None) -> dict:
+    def upload_images_to_s3(self, images: torch.Tensor, bucket_name: str, s3_key: str, prompt: Optional[str] = None) -> dict:
         """
         Save a batch of images to S3.
         
@@ -142,25 +142,15 @@ class S3ImageLoader:
         }
 
     RETURN_TYPES = ("IMAGE",)
-    FUNCTION = "load_image_as_tensor"
+    FUNCTION = "load_image_from_s3"
     CATEGORY = "image"
 
     def __init__(self):
-        """
-        Initialize S3ImageLoader with AWS credentials and bucket name.
-        
-        Args:
-            bucket_name (str): Name of the S3 bucket
-            access_key (str): AWS access key ID
-            secret_key (str): AWS secret access key
-            region (str): AWS region (default: 'us-west-2')
-        """
-        self.s3 = boto3.client(
-            's3',
-        )
+        self.s3 = boto3.client('s3')
+
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=5)
-    def load_image_as_tensor(self, key: str) -> Optional[torch.Tensor]:
+    def load_image_from_s3(self, bucket_name:str, s3_key: str) -> Optional[torch.Tensor]:
         """
         Download an image from S3 and convert to tensor.
         
@@ -171,10 +161,11 @@ class S3ImageLoader:
             Optional[torch.Tensor]: Image tensor if successful, None otherwise
         """
         try:
+            print(f"loading image from bucket: {bucket_name}, key: {s3_key}")
             # Download image bytes from S3
             response = self.s3.get_object(
-                Bucket=self.bucket_name,
-                Key=key
+                Bucket=bucket_name,
+                Key=s3_key
             )
             image_bytes = response['Body'].read()
             
@@ -191,9 +182,10 @@ class S3ImageLoader:
             # Convert to tensor and add batch dimension
             image_tensor = torch.from_numpy(image)[None,]
             
-            return image_tensor
+            return (image_tensor,)  # 返回tuple
+            
         except Exception as e:
-            print(f"Error loading image from S3: {str(e)}")
-            return None
+            print(f"Error loading image from S3: {e}")
+            raise Exception(f"Failed to load image from S3: {e}")
 
 
