@@ -101,8 +101,7 @@ class S3ImageSaver:
                 img_bytes.seek(0)
                 
                 # Generate unique filename with timestamp
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"{base_filename}_{timestamp}_{i:05d}.png"
+                filename = f"{base_filename}_{i:05d}.png"
                 
                 # Construct final key
                 key = os.path.join(folder_path, filename) if folder_path else filename
